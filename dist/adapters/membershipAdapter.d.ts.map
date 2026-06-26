@@ -1,0 +1,1 @@
+{"version":3,"file":"membershipAdapter.d.ts","sourceRoot":"","sources":["../../src/adapters/membershipAdapter.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,0BAA0B,EAAE,MAAM,aAAa,CAAC;AAEzD,MAAM,WAAW,iBAAiB;IAChC;;;OAGG;IACH,QAAQ,CAAC,0BAA0B,EAAE,MAAM,GAAG,OAAO,CAAC,0BAA0B,CAAC,CAAC;IAClF,oDAAoD;IACpD,KAAK,CAAC,IAAI,OAAO,CAAC,IAAI,CAAC,CAAC;CACzB"}
