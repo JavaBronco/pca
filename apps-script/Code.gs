@@ -50,6 +50,7 @@ function onFormSubmit(e) {
       },
       payload: JSON.stringify(payload),
       muteHttpExceptions: true,
+      followRedirects: false,
     });
 
     var code = response.getResponseCode();
@@ -127,6 +128,7 @@ function testWebhook() {
     headers: { 'X-Webhook-Secret': webhookSecret },
     payload: JSON.stringify(payload),
     muteHttpExceptions: true,
+    followRedirects: false,
   });
 
   Logger.log('Test result: ' + response.getResponseCode() + ' — ' + response.getContentText());

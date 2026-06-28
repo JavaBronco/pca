@@ -3,7 +3,7 @@ export declare class DiscordService {
     private rest;
     constructor();
     postProposal(submission: FormSubmission): Promise<DiscordPostResult>;
-    private buildMessage;
+    private buildVotingMessage;
     closeVotingMessage(channelId: string, messageId: string, totals: {
         approve: number;
         reject: number;
