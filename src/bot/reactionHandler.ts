@@ -51,7 +51,17 @@ async function handleReactionAdd(
   if (user.bot) return;
 
   const cfg = getConfig();
-  if (reaction.message.channelId !== cfg.DISCORD_VOTING_CHANNEL_ID) return;
+
+  // Support both standard text channels and forum channel threads.
+  // In a forum channel, reactions happen inside the thread (a child channel),
+  // so we check the thread's parentId against the forum channel ID.
+  const channel = reaction.message.channel;
+  const parentId = channel && 'parentId' in channel ? (channel as { parentId?: string }).parentId : null;
+  const isInVotingArea =
+    reaction.message.channelId === cfg.DISCORD_VOTING_CHANNEL_ID ||
+    parentId === cfg.DISCORD_VOTING_CHANNEL_ID;
+
+  if (!isInVotingArea) return;
 
   // Fetch partial data if needed
   try {
@@ -93,7 +103,13 @@ async function handleReactionRemove(
   if (user.bot) return;
 
   const cfg = getConfig();
-  if (reaction.message.channelId !== cfg.DISCORD_VOTING_CHANNEL_ID) return;
+  const channel = reaction.message.channel;
+  const parentId = channel && 'parentId' in channel ? (channel as { parentId?: string }).parentId : null;
+  const isInVotingArea =
+    reaction.message.channelId === cfg.DISCORD_VOTING_CHANNEL_ID ||
+    parentId === cfg.DISCORD_VOTING_CHANNEL_ID;
+
+  if (!isInVotingArea) return;
 
   try {
     if (reaction.partial) await reaction.fetch();
@@ -123,7 +139,7 @@ export async function closeExpiredVoting(
   for (const proposal of proposals) {
     try {
       const totals = await voteTracker.getTotals(proposal.messageId);
-      await discordService.closeVotingMessage(cfg.DISCORD_VOTING_CHANNEL_ID, proposal.messageId, totals);
+      await discordService.closeVotingMessage(proposal.threadId, proposal.messageId, totals);
       await voteTracker.markClosed(proposal.messageId);
       await auditLogger.log({
         submissionId: proposal.submissionId,

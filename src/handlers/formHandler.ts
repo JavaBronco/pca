@@ -139,6 +139,7 @@ export async function handleFormSubmission(
   await deps.voteTracker.recordProposal({
     submissionId: submission.submissionId,
     messageId: postResult.messageId,
+    threadId: postResult.threadId,
     proposedName: submission.proposedName,
     postedAt: postResult.postedAt,
     votingClosesAt,

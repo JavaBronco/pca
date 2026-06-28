@@ -19,6 +19,7 @@ export interface MembershipValidationResult {
 }
 export interface DiscordPostResult {
     messageId: string;
+    threadId: string;
     channelId: string;
     postedAt: Date;
 }
@@ -38,6 +39,7 @@ export interface VoteTotals {
 export interface ProposalRecord {
     submissionId: string;
     messageId: string;
+    threadId: string;
     proposedName: string;
     postedAt: Date;
     votingClosesAt?: Date;

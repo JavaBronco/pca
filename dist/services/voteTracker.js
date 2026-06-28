@@ -25,6 +25,7 @@ class VoteTracker {
             record.postedAt.toISOString(),
             record.votingClosesAt?.toISOString() ?? '',
             record.closed ? 'TRUE' : 'FALSE',
+            record.threadId,
         ]);
     }
     async recordVote(vote) {
@@ -101,6 +102,7 @@ class VoteTracker {
                     postedAt: new Date(row[3]),
                     votingClosesAt: closesAt,
                     closed: false,
+                    threadId: row[6] ?? row[1], // fallback to messageId for backwards compat
                 });
             }
         }

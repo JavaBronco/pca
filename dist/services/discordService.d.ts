@@ -3,8 +3,8 @@ export declare class DiscordService {
     private rest;
     constructor();
     postProposal(submission: FormSubmission): Promise<DiscordPostResult>;
-    private buildVotingMessage;
-    closeVotingMessage(channelId: string, messageId: string, totals: {
+    private buildVotingContent;
+    closeVotingMessage(threadId: string, messageId: string, totals: {
         approve: number;
         reject: number;
         discuss: number;

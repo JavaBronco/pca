@@ -22,7 +22,8 @@ export interface MembershipValidationResult {
 }
 
 export interface DiscordPostResult {
-  messageId: string;
+  messageId: string;   // starter message ID — used for reaction tracking
+  threadId: string;    // forum post / thread ID — used for posting results
   channelId: string;
   postedAt: Date;
 }
@@ -44,7 +45,8 @@ export interface VoteTotals {
 
 export interface ProposalRecord {
   submissionId: string;
-  messageId: string;
+  messageId: string;   // starter message ID for reaction tracking
+  threadId: string;    // forum post ID for posting results
   proposedName: string;
   postedAt: Date;
   votingClosesAt?: Date;
