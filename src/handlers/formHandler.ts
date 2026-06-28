@@ -62,51 +62,6 @@ export async function handleFormSubmission(
     }
   }
 
-  // Membership validation
-  let membershipResult;
-  try {
-    membershipResult = await deps.membershipAdapter.validate(submission.membershipNumber);
-  } catch (err) {
-    const errMsg = (err as Error).message;
-    await deps.auditLogger.log({
-      submissionId: submission.submissionId,
-      timestamp: new Date(),
-      event: 'membership_check_error',
-      membershipStatus: 'error',
-      error: errMsg,
-    });
-    await deps.adminNotifier.notify({
-      submissionId: submission.submissionId,
-      event: 'system_error',
-      detail: `Membership adapter threw: ${errMsg}`,
-      proposedName: submission.proposedName,
-      timestamp: new Date(),
-    });
-    return { outcome: 'error', message: 'Membership check failed', submissionId: submission.submissionId };
-  }
-
-  await deps.auditLogger.log({
-    submissionId: submission.submissionId,
-    timestamp: membershipResult.validatedAt,
-    event: 'membership_validated',
-    membershipStatus: membershipResult.status,
-  });
-
-  if (membershipResult.status !== 'valid') {
-    await deps.adminNotifier.notify({
-      submissionId: submission.submissionId,
-      event: 'membership_invalid',
-      detail: `Status: ${membershipResult.status}. ${membershipResult.message ?? ''}`,
-      proposedName: submission.proposedName,
-      timestamp: new Date(),
-    });
-    return {
-      outcome: 'membership_denied',
-      status: membershipResult.status,
-      submissionId: submission.submissionId,
-    };
-  }
-
   // Check if this name was already proposed — if so, add as a supporting comment
   let existingProposal = null;
   try {
