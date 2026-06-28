@@ -27,6 +27,34 @@ export function normalizeMembershipNumber(raw: string): string {
   return raw.trim().toUpperCase().replace(/\s+/g, '');
 }
 
+/**
+ * Ensures the proposed name ends with "Region".
+ * "West Coast" → "West Coast Region"
+ * "West Coast Region" → "West Coast Region" (unchanged)
+ * "west coast region" → "west coast region" (unchanged, already has it)
+ */
+/**
+ * Converts a string to title case: "west coast" → "West Coast"
+ */
+function toTitleCase(str: string): string {
+  return str.replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+/**
+ * Normalizes a proposed region name:
+ * 1. Title-cases every word
+ * 2. Appends "Region" if not already present
+ *
+ * "west coast"        → "West Coast Region"
+ * "WEST COAST REGION" → "West Coast Region"
+ * "Blue Ridge"        → "Blue Ridge Region"
+ */
+export function normalizeProposedName(raw: string): string {
+  const titled = toTitleCase(raw.trim().toLowerCase());
+  if (/\bRegion\s*$/i.test(titled)) return titled;
+  return `${titled} Region`;
+}
+
 export function validateFields(payload: unknown): FieldValidationResult {
   const parsed = payloadSchema.safeParse(payload);
   if (!parsed.success) {
@@ -66,7 +94,7 @@ export function validateFields(payload: unknown): FieldValidationResult {
     submissionId: uuidv4(),
     receivedAt: new Date(),
     membershipNumber: normalizedMembership,
-    proposedName: data.proposedName.trim(),
+    proposedName: normalizeProposedName(data.proposedName),
     whyItFits: data.whyItFits.trim(),
   };
 

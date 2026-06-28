@@ -9,6 +9,16 @@ export interface FieldValidationResult {
     submission?: FormSubmission;
 }
 export declare function normalizeMembershipNumber(raw: string): string;
+/**
+ * Normalizes a proposed region name:
+ * 1. Title-cases every word
+ * 2. Appends "Region" if not already present
+ *
+ * "west coast"        → "West Coast Region"
+ * "WEST COAST REGION" → "West Coast Region"
+ * "Blue Ridge"        → "Blue Ridge Region"
+ */
+export declare function normalizeProposedName(raw: string): string;
 export declare function validateFields(payload: unknown): FieldValidationResult;
 export declare function validateWebhookSecret(header: string | undefined, expectedSecret: string): boolean;
 //# sourceMappingURL=fieldValidator.d.ts.map

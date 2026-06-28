@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.normalizeMembershipNumber = normalizeMembershipNumber;
+exports.normalizeProposedName = normalizeProposedName;
 exports.validateFields = validateFields;
 exports.validateWebhookSecret = validateWebhookSecret;
 const zod_1 = require("zod");
@@ -15,6 +16,33 @@ const payloadSchema = zod_1.z.object({
 });
 function normalizeMembershipNumber(raw) {
     return raw.trim().toUpperCase().replace(/\s+/g, '');
+}
+/**
+ * Ensures the proposed name ends with "Region".
+ * "West Coast" → "West Coast Region"
+ * "West Coast Region" → "West Coast Region" (unchanged)
+ * "west coast region" → "west coast region" (unchanged, already has it)
+ */
+/**
+ * Converts a string to title case: "west coast" → "West Coast"
+ */
+function toTitleCase(str) {
+    return str.replace(/\b\w/g, (char) => char.toUpperCase());
+}
+/**
+ * Normalizes a proposed region name:
+ * 1. Title-cases every word
+ * 2. Appends "Region" if not already present
+ *
+ * "west coast"        → "West Coast Region"
+ * "WEST COAST REGION" → "West Coast Region"
+ * "Blue Ridge"        → "Blue Ridge Region"
+ */
+function normalizeProposedName(raw) {
+    const titled = toTitleCase(raw.trim().toLowerCase());
+    if (/\bRegion\s*$/i.test(titled))
+        return titled;
+    return `${titled} Region`;
 }
 function validateFields(payload) {
     const parsed = payloadSchema.safeParse(payload);
@@ -49,7 +77,7 @@ function validateFields(payload) {
         submissionId: (0, uuid_1.v4)(),
         receivedAt: new Date(),
         membershipNumber: normalizedMembership,
-        proposedName: data.proposedName.trim(),
+        proposedName: normalizeProposedName(data.proposedName),
         whyItFits: data.whyItFits.trim(),
     };
     return { valid: true, errors: [], submission };
