@@ -4,8 +4,6 @@ import { getConfig } from '../config.js';
 
 const EMOJI_MAP: Record<string, VoteRecord['voteType']> = {
   '👍': 'approve',
-  '👎': 'reject',
-  '🤔': 'discuss',
 };
 
 /**

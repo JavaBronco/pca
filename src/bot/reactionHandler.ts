@@ -4,7 +4,7 @@ import { DiscordService } from '../services/discordService.js';
 import { AuditLogger } from '../services/auditLogger.js';
 import { getConfig } from '../config.js';
 
-const VOTE_EMOJIS = new Set(['👍', '👎', '🤔']);
+const VOTE_EMOJIS = new Set(['👍']);
 
 export function createDiscordBot(
   voteTracker: VoteTracker,

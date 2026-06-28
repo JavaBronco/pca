@@ -3,7 +3,7 @@ import { Routes } from 'discord-api-types/v10';
 import { DiscordPostResult, FormSubmission } from '../types.js';
 import { getConfig } from '../config.js';
 
-const VOTE_EMOJIS = ['👍', '👎', '🤔'] as const;
+const VOTE_EMOJIS = ['👍'] as const;
 
 function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
@@ -88,7 +88,7 @@ export class DiscordService {
       submission.whyItFits,
       '',
       '━━━━━━━━━━━━━━━━━━━━━━',
-      'React to vote:  👍 Approve  ·  👎 Reject  ·  🤔 Needs Discussion',
+      'React with 👍 to approve this name.',
       '_Use this thread to discuss the proposal._',
     ].join('\n');
   }
@@ -123,23 +123,12 @@ export class DiscordService {
     messageId: string,
     totals: { approve: number; reject: number; discuss: number },
   ): Promise<void> {
-    const resultLine =
-      totals.approve > totals.reject
-        ? '✅ Result: **APPROVED**'
-        : totals.approve < totals.reject
-          ? '❌ Result: **REJECTED**'
-          : '🤝 Result: **TIE — Needs Committee Review**';
-
     // Post the result inside the thread
     await this.rest.post(Routes.channelMessages(threadId), {
       body: {
         content: [
           '**🔒 Voting has closed.**',
           `👍 Approve: ${totals.approve}`,
-          `👎 Reject: ${totals.reject}`,
-          `🤔 Needs Discussion: ${totals.discuss}`,
-          '',
-          resultLine,
         ].join('\n'),
         message_reference: { message_id: messageId },
       },
