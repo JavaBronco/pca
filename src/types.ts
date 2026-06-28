@@ -1,9 +1,6 @@
 export interface FormSubmission {
   submissionId: string;
   receivedAt: Date;
-  firstName: string;
-  lastName: string;
-  email: string;
   membershipNumber: string;
   proposedName: string;
   whyItFits: string;
@@ -71,9 +68,6 @@ export interface AdminAlertPayload {
 }
 
 export interface WebhookPayload {
-  firstName: string;
-  lastName: string;
-  email: string;
   membershipNumber: string;
   proposedName: string;
   whyItFits: string;

@@ -1,10 +1,8 @@
 import { z } from 'zod';
-import { FormSubmission, WebhookPayload } from '../types.js';
+import { FormSubmission } from '../types.js';
 import { v4 as uuidv4 } from 'uuid';
 
-const EMAIL_RE = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
-
-// PCA membership numbers: letters/digits, 4-12 chars after normalization
+// PCA membership numbers: letters/digits, 4-20 chars after normalization
 const MEMBERSHIP_RE = /^[A-Z0-9\-]{4,20}$/;
 
 export interface ValidationError {
@@ -19,12 +17,9 @@ export interface FieldValidationResult {
 }
 
 const payloadSchema = z.object({
-  firstName: z.string().trim().min(1, 'First name is required'),
-  lastName: z.string().trim().min(1, 'Last name is required'),
-  email: z.string().trim().min(1, 'Email is required'),
   membershipNumber: z.string().trim().min(1, 'Membership number is required'),
   proposedName: z.string().trim().min(1, 'Proposed region name is required'),
-  whyItFits: z.string().trim().min(1, 'Why this name fits is required'),
+  whyItFits: z.string().trim().min(1, 'What you like about this name is required'),
   submittedAt: z.string().optional(),
 });
 
@@ -47,10 +42,6 @@ export function validateFields(payload: unknown): FieldValidationResult {
   const data = parsed.data;
   const errors: ValidationError[] = [];
 
-  if (!EMAIL_RE.test(data.email)) {
-    errors.push({ field: 'email', message: 'Invalid email format' });
-  }
-
   const normalizedMembership = normalizeMembershipNumber(data.membershipNumber);
   if (!MEMBERSHIP_RE.test(normalizedMembership)) {
     errors.push({
@@ -64,7 +55,7 @@ export function validateFields(payload: unknown): FieldValidationResult {
   }
 
   if (data.whyItFits.length > 2000) {
-    errors.push({ field: 'whyItFits', message: 'Explanation exceeds 2000 characters' });
+    errors.push({ field: 'whyItFits', message: 'Response exceeds 2000 characters' });
   }
 
   if (errors.length > 0) {
@@ -74,9 +65,6 @@ export function validateFields(payload: unknown): FieldValidationResult {
   const submission: FormSubmission = {
     submissionId: uuidv4(),
     receivedAt: new Date(),
-    firstName: data.firstName.trim(),
-    lastName: data.lastName.trim(),
-    email: data.email.trim().toLowerCase(),
     membershipNumber: normalizedMembership,
     proposedName: data.proposedName.trim(),
     whyItFits: data.whyItFits.trim(),

@@ -84,7 +84,7 @@ export class DiscordService {
 
   private buildVotingContent(submission: FormSubmission): string {
     return [
-      '**Why It Fits:**',
+      '**What Members Like About This Name:**',
       submission.whyItFits,
       '',
       '━━━━━━━━━━━━━━━━━━━━━━',

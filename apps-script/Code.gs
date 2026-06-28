@@ -12,12 +12,9 @@
  */
 
 var FIELD_MAP = {
-  firstName: 'First Name',
-  lastName: 'Last Name',
-  email: 'Email Address',
   membershipNumber: 'PCA Membership Number',
   proposedName: 'Proposed Region Name',
-  whyItFits: 'Why does this name fit?',
+  whyItFits: 'What I like about this name',
 };
 
 /**
@@ -81,22 +78,16 @@ function extractPayload(formResponse) {
     data[title] = value;
   }
 
-  var firstName = data[FIELD_MAP.firstName];
-  var lastName = data[FIELD_MAP.lastName];
-  var email = data[FIELD_MAP.email];
   var membershipNumber = data[FIELD_MAP.membershipNumber];
   var proposedName = data[FIELD_MAP.proposedName];
   var whyItFits = data[FIELD_MAP.whyItFits];
 
-  if (!firstName || !lastName || !email || !membershipNumber || !proposedName || !whyItFits) {
+  if (!membershipNumber || !proposedName || !whyItFits) {
     Logger.log('Missing required field(s). Raw data: ' + JSON.stringify(data));
     return null;
   }
 
   return {
-    firstName: String(firstName).trim(),
-    lastName: String(lastName).trim(),
-    email: String(email).trim(),
     membershipNumber: String(membershipNumber).trim(),
     proposedName: String(proposedName).trim(),
     whyItFits: String(whyItFits).trim(),
@@ -113,9 +104,6 @@ function testWebhook() {
   var webhookSecret = props.getProperty('WEBHOOK_SECRET');
 
   var payload = {
-    firstName: 'Test',
-    lastName: 'Member',
-    email: 'test@example.com',
     membershipNumber: 'TESTVALID001',
     proposedName: 'Blue Ridge Region',
     whyItFits: 'The Blue Ridge Mountains define our geography and community spirit.',

@@ -68,7 +68,7 @@ class DiscordService {
     }
     buildVotingContent(submission) {
         return [
-            '**Why It Fits:**',
+            '**What Members Like About This Name:**',
             submission.whyItFits,
             '',
             '━━━━━━━━━━━━━━━━━━━━━━',

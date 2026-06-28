@@ -26,9 +26,6 @@ async function handleFormSubmission(rawPayload, webhookHeader, deps) {
             await (0, sheetsClient_js_1.appendRow)(cfg.SUBMISSIONS_SHEET_ID, cfg.SUBMISSIONS_SHEET_NAME, [
                 submission.submissionId,
                 submission.receivedAt.toISOString(),
-                submission.firstName,
-                submission.lastName,
-                submission.email,
                 submission.membershipNumber,
                 submission.proposedName,
                 'pending',

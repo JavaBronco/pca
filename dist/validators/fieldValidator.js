@@ -5,16 +5,12 @@ exports.validateFields = validateFields;
 exports.validateWebhookSecret = validateWebhookSecret;
 const zod_1 = require("zod");
 const uuid_1 = require("uuid");
-const EMAIL_RE = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
-// PCA membership numbers: letters/digits, 4-12 chars after normalization
+// PCA membership numbers: letters/digits, 4-20 chars after normalization
 const MEMBERSHIP_RE = /^[A-Z0-9\-]{4,20}$/;
 const payloadSchema = zod_1.z.object({
-    firstName: zod_1.z.string().trim().min(1, 'First name is required'),
-    lastName: zod_1.z.string().trim().min(1, 'Last name is required'),
-    email: zod_1.z.string().trim().min(1, 'Email is required'),
     membershipNumber: zod_1.z.string().trim().min(1, 'Membership number is required'),
     proposedName: zod_1.z.string().trim().min(1, 'Proposed region name is required'),
-    whyItFits: zod_1.z.string().trim().min(1, 'Why this name fits is required'),
+    whyItFits: zod_1.z.string().trim().min(1, 'What you like about this name is required'),
     submittedAt: zod_1.z.string().optional(),
 });
 function normalizeMembershipNumber(raw) {
@@ -33,9 +29,6 @@ function validateFields(payload) {
     }
     const data = parsed.data;
     const errors = [];
-    if (!EMAIL_RE.test(data.email)) {
-        errors.push({ field: 'email', message: 'Invalid email format' });
-    }
     const normalizedMembership = normalizeMembershipNumber(data.membershipNumber);
     if (!MEMBERSHIP_RE.test(normalizedMembership)) {
         errors.push({
@@ -47,7 +40,7 @@ function validateFields(payload) {
         errors.push({ field: 'proposedName', message: 'Proposed name exceeds 100 characters' });
     }
     if (data.whyItFits.length > 2000) {
-        errors.push({ field: 'whyItFits', message: 'Explanation exceeds 2000 characters' });
+        errors.push({ field: 'whyItFits', message: 'Response exceeds 2000 characters' });
     }
     if (errors.length > 0) {
         return { valid: false, errors };
@@ -55,9 +48,6 @@ function validateFields(payload) {
     const submission = {
         submissionId: (0, uuid_1.v4)(),
         receivedAt: new Date(),
-        firstName: data.firstName.trim(),
-        lastName: data.lastName.trim(),
-        email: data.email.trim().toLowerCase(),
         membershipNumber: normalizedMembership,
         proposedName: data.proposedName.trim(),
         whyItFits: data.whyItFits.trim(),
