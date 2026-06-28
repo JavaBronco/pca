@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.app = void 0;
 const express_1 = __importDefault(require("express"));
+const memberImporter_js_1 = require("./services/memberImporter.js");
 const config_js_1 = require("./config.js");
 const formHandler_js_1 = require("./handlers/formHandler.js");
 const adapterFactory_js_1 = require("./adapters/adapterFactory.js");
@@ -58,6 +59,35 @@ app.post('/webhook/form-submission', async (req, res) => {
         case 'error':
             res.status(result.message === 'Invalid webhook secret' ? 401 : 500).json({ error: result.message });
             break;
+    }
+});
+// Import a new member list from a CSV/text file body
+// Usage: POST /admin/import-members  (body = raw CSV text, Content-Type: text/plain)
+// Header: X-Admin-Secret: <WEBHOOK_SECRET>
+app.post('/admin/import-members', express_1.default.text({ limit: '10mb', type: '*/*' }), async (req, res) => {
+    const cfg = (0, config_js_1.getConfig)();
+    if (req.headers['x-admin-secret'] !== cfg.WEBHOOK_SECRET) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+    }
+    const raw = typeof req.body === 'string' ? req.body : '';
+    if (!raw.trim()) {
+        res.status(400).json({ error: 'Empty body — send the CSV file contents as plain text' });
+        return;
+    }
+    try {
+        const members = (0, memberImporter_js_1.parseMemberFile)(raw);
+        if (members.length === 0) {
+            res.status(400).json({ error: 'No member numbers found in file' });
+            return;
+        }
+        const count = await (0, memberImporter_js_1.importMembersToSheet)(members);
+        console.log(`[Import] Updated member list: ${count} active members`);
+        res.json({ ok: true, imported: count });
+    }
+    catch (err) {
+        console.error('[Import] Failed:', err.message);
+        res.status(500).json({ error: 'Import failed', detail: err.message });
     }
 });
 // Manual trigger to close expired voting (can also be called by a cron)

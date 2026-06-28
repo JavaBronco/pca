@@ -1,4 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
+import { parseMemberFile, importMembersToSheet } from './services/memberImporter.js';
 import { getConfig } from './config.js';
 import { handleFormSubmission } from './handlers/formHandler.js';
 import { createMembershipAdapter } from './adapters/adapterFactory.js';
@@ -57,6 +58,38 @@ app.post('/webhook/form-submission', async (req: Request, res: Response) => {
     case 'error':
       res.status(result.message === 'Invalid webhook secret' ? 401 : 500).json({ error: result.message });
       break;
+  }
+});
+
+// Import a new member list from a CSV/text file body
+// Usage: POST /admin/import-members  (body = raw CSV text, Content-Type: text/plain)
+// Header: X-Admin-Secret: <WEBHOOK_SECRET>
+app.post('/admin/import-members', express.text({ limit: '10mb', type: '*/*' }), async (req: Request, res: Response) => {
+  const cfg = getConfig();
+  if (req.headers['x-admin-secret'] !== cfg.WEBHOOK_SECRET) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  const raw = typeof req.body === 'string' ? req.body : '';
+  if (!raw.trim()) {
+    res.status(400).json({ error: 'Empty body — send the CSV file contents as plain text' });
+    return;
+  }
+
+  try {
+    const members = parseMemberFile(raw);
+    if (members.length === 0) {
+      res.status(400).json({ error: 'No member numbers found in file' });
+      return;
+    }
+
+    const count = await importMembersToSheet(members);
+    console.log(`[Import] Updated member list: ${count} active members`);
+    res.json({ ok: true, imported: count });
+  } catch (err) {
+    console.error('[Import] Failed:', (err as Error).message);
+    res.status(500).json({ error: 'Import failed', detail: (err as Error).message });
   }
 });
 

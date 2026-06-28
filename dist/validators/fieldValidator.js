@@ -6,8 +6,6 @@ exports.validateFields = validateFields;
 exports.validateWebhookSecret = validateWebhookSecret;
 const zod_1 = require("zod");
 const uuid_1 = require("uuid");
-// PCA membership numbers: letters/digits, 4-20 chars after normalization
-const MEMBERSHIP_RE = /^[A-Z0-9\-]{4,20}$/;
 const payloadSchema = zod_1.z.object({
     membershipNumber: zod_1.z.string().trim().min(1, 'Membership number is required'),
     proposedName: zod_1.z.string().trim().min(1, 'Proposed region name is required'),
@@ -58,12 +56,6 @@ function validateFields(payload) {
     const data = parsed.data;
     const errors = [];
     const normalizedMembership = normalizeMembershipNumber(data.membershipNumber);
-    if (!MEMBERSHIP_RE.test(normalizedMembership)) {
-        errors.push({
-            field: 'membershipNumber',
-            message: 'Membership number contains invalid characters or wrong length',
-        });
-    }
     if (data.proposedName.length > 100) {
         errors.push({ field: 'proposedName', message: 'Proposed name exceeds 100 characters' });
     }

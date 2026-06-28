@@ -96,16 +96,63 @@ function extractPayload(formResponse) {
 }
 
 /**
+ * Reads the first ACTIVE member number from the Members sheet.
+ * Requires MEMBERS_SHEET_ID to be set in Script Properties.
+ * @returns {string|null}
+ */
+function getFirstActiveMember() {
+  var props = PropertiesService.getScriptProperties();
+  var sheetId = props.getProperty('MEMBERS_SHEET_ID');
+
+  if (!sheetId) {
+    Logger.log('ERROR: MEMBERS_SHEET_ID not set in Script Properties.');
+    return null;
+  }
+
+  try {
+    var sheet = SpreadsheetApp.openById(sheetId).getSheetByName('Members');
+    if (!sheet) {
+      Logger.log('ERROR: "Members" tab not found in the Members sheet.');
+      return null;
+    }
+
+    var data = sheet.getDataRange().getValues();
+    for (var i = 1; i < data.length; i++) {
+      var number = String(data[i][0]).trim();
+      var status = String(data[i][1]).trim().toUpperCase();
+      if (number && status === 'ACTIVE') {
+        return number;
+      }
+    }
+
+    Logger.log('ERROR: No ACTIVE members found in the Members sheet.');
+    return null;
+  } catch (err) {
+    Logger.log('ERROR reading Members sheet: ' + err.toString());
+    return null;
+  }
+}
+
+/**
  * Test this script manually by running testWebhook() from the Apps Script editor.
+ * Pulls a real member number from the Members sheet — no hardcoded values.
  */
 function testWebhook() {
   var props = PropertiesService.getScriptProperties();
   var webhookUrl = props.getProperty('WEBHOOK_URL');
   var webhookSecret = props.getProperty('WEBHOOK_SECRET');
 
+  var memberNumber = getFirstActiveMember();
+  if (!memberNumber) {
+    Logger.log('STOPPED: Could not find an active member number to test with.');
+    return;
+  }
+
+  Logger.log('Testing with member number: ' + memberNumber);
+
   var payload = {
-    membershipNumber: 'TESTVALID001',
-    proposedName: 'Blue Ridge Region',
+    membershipNumber: memberNumber,
+    proposedName: 'Blue Ridge',
     whyItFits: 'The Blue Ridge Mountains define our geography and community spirit.',
     submittedAt: new Date().toISOString(),
   };

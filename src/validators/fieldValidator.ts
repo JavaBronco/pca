@@ -2,8 +2,6 @@ import { z } from 'zod';
 import { FormSubmission } from '../types.js';
 import { v4 as uuidv4 } from 'uuid';
 
-// PCA membership numbers: letters/digits, 4-20 chars after normalization
-const MEMBERSHIP_RE = /^[A-Z0-9\-]{4,20}$/;
 
 export interface ValidationError {
   field: string;
@@ -71,12 +69,6 @@ export function validateFields(payload: unknown): FieldValidationResult {
   const errors: ValidationError[] = [];
 
   const normalizedMembership = normalizeMembershipNumber(data.membershipNumber);
-  if (!MEMBERSHIP_RE.test(normalizedMembership)) {
-    errors.push({
-      field: 'membershipNumber',
-      message: 'Membership number contains invalid characters or wrong length',
-    });
-  }
 
   if (data.proposedName.length > 100) {
     errors.push({ field: 'proposedName', message: 'Proposed name exceeds 100 characters' });
