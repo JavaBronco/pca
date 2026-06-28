@@ -88,7 +88,7 @@ export class DiscordService {
       submission.whyItFits,
       '',
       '━━━━━━━━━━━━━━━━━━━━━━',
-      'React with 👍 to support this name.',
+      'React with 👍 to support this new name proposal.',
       '_Use this thread to discuss the proposal._',
     ].join('\n');
   }
