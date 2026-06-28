@@ -110,7 +110,44 @@ export async function handleFormSubmission(
     };
   }
 
-  // Post to Discord
+  // Check if this name was already proposed — if so, add as a supporting comment
+  let existingProposal = null;
+  try {
+    existingProposal = await deps.voteTracker.findOpenProposalByName(submission.proposedName);
+  } catch (err) {
+    console.warn('[Handler] Could not check for duplicate proposal:', (err as Error).message);
+  }
+
+  if (existingProposal) {
+    try {
+      await deps.discordService.addSupportingReason(existingProposal.threadId, submission.whyItFits);
+    } catch (err) {
+      const errMsg = (err as Error).message;
+      await deps.adminNotifier.notify({
+        submissionId: submission.submissionId,
+        event: 'discord_error',
+        detail: `Failed to add supporting reason to thread: ${errMsg}`,
+        proposedName: submission.proposedName,
+        timestamp: new Date(),
+      });
+      return { outcome: 'error', message: 'Discord post failed', submissionId: submission.submissionId };
+    }
+
+    await deps.auditLogger.log({
+      submissionId: submission.submissionId,
+      timestamp: new Date(),
+      event: 'supporting_submission',
+      discordMessageId: existingProposal.messageId,
+    });
+
+    return {
+      outcome: 'accepted',
+      submissionId: submission.submissionId,
+      messageId: existingProposal.messageId,
+    };
+  }
+
+  // No existing proposal — create a new forum post
   let postResult;
   try {
     postResult = await deps.discordService.postProposal(submission);

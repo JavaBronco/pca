@@ -93,6 +93,31 @@ export class DiscordService {
     ].join('\n');
   }
 
+  /**
+   * Posts a supporting reason as a reply inside an existing proposal's thread.
+   * Called when a second member submits the same proposed name.
+   */
+  async addSupportingReason(threadId: string, whyItFits: string): Promise<void> {
+    const cfg = getConfig();
+    const maxAttempts = parseInt(cfg.RATE_LIMIT_RETRY_ATTEMPTS, 10);
+    const baseDelay = parseInt(cfg.RATE_LIMIT_BASE_DELAY_MS, 10);
+
+    await withRetry(
+      () => this.rest.post(Routes.channelMessages(threadId), {
+        body: {
+          content: [
+            '**💬 Another member supports this name!**',
+            '',
+            '**Their reason:**',
+            whyItFits,
+          ].join('\n'),
+        },
+      }) as Promise<unknown>,
+      maxAttempts,
+      baseDelay,
+    );
+  }
+
   async closeVotingMessage(
     threadId: string,
     messageId: string,

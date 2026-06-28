@@ -137,6 +137,34 @@ export class VoteTracker {
     );
   }
 
+  /**
+   * Finds an open (not yet closed) proposal matching the proposed name.
+   * Comparison is case-insensitive and trims whitespace.
+   */
+  async findOpenProposalByName(proposedName: string): Promise<ProposalRecord | null> {
+    const cfg = getConfig();
+    if (!cfg.SUBMISSIONS_SHEET_ID) return null;
+
+    const rows = await getRows(cfg.SUBMISSIONS_SHEET_ID, cfg.PROPOSALS_SHEET_NAME);
+    const normalized = proposedName.trim().toLowerCase();
+
+    for (const row of rows) {
+      if (row[5] === 'TRUE') continue; // already closed
+      if ((row[2] ?? '').trim().toLowerCase() === normalized) {
+        return {
+          submissionId: row[0],
+          messageId: row[1],
+          proposedName: row[2],
+          postedAt: new Date(row[3]),
+          votingClosesAt: row[4] ? new Date(row[4]) : undefined,
+          closed: false,
+          threadId: row[6] ?? row[1],
+        };
+      }
+    }
+    return null;
+  }
+
   emojiToVoteType(emoji: string): VoteRecord['voteType'] | null {
     return EMOJI_MAP[emoji] ?? null;
   }

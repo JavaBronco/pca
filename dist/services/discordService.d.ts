@@ -4,6 +4,11 @@ export declare class DiscordService {
     constructor();
     postProposal(submission: FormSubmission): Promise<DiscordPostResult>;
     private buildVotingContent;
+    /**
+     * Posts a supporting reason as a reply inside an existing proposal's thread.
+     * Called when a second member submits the same proposed name.
+     */
+    addSupportingReason(threadId: string, whyItFits: string): Promise<void>;
     closeVotingMessage(threadId: string, messageId: string, totals: {
         approve: number;
         reject: number;

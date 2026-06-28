@@ -15,6 +15,11 @@ export declare class VoteTracker {
     getProposalsReadyToClose(): Promise<ProposalRecord[]>;
     markClosed(messageId: string): Promise<void>;
     private getExistingVote;
+    /**
+     * Finds an open (not yet closed) proposal matching the proposed name.
+     * Comparison is case-insensitive and trims whitespace.
+     */
+    findOpenProposalByName(proposedName: string): Promise<ProposalRecord | null>;
     emojiToVoteType(emoji: string): VoteRecord['voteType'] | null;
 }
 export declare const voteTracker: VoteTracker;
