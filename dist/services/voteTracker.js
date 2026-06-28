@@ -9,6 +9,18 @@ const EMOJI_MAP = {
     '🤔': 'discuss',
 };
 /**
+ * Normalizes a proposal name for duplicate detection.
+ * Strips spaces, hyphens, underscores, and punctuation, then lowercases.
+ * "West Coast", "WestCoast", "west-coast", "westcoast" all become "westcoast".
+ */
+function normalizeProposalName(name) {
+    return name
+        .trim()
+        .toLowerCase()
+        .replace(/[\s\-_]+/g, '') // remove spaces, hyphens, underscores
+        .replace(/[^a-z0-9]/g, ''); // remove any remaining non-alphanumeric chars
+}
+/**
  * All Discord user IDs are stored as-is; they are not PII under GDPR since
  * they are pseudonymous platform identifiers. No mapping to real identities
  * is stored.
@@ -136,11 +148,11 @@ class VoteTracker {
         if (!cfg.SUBMISSIONS_SHEET_ID)
             return null;
         const rows = await (0, sheetsClient_js_1.getRows)(cfg.SUBMISSIONS_SHEET_ID, cfg.PROPOSALS_SHEET_NAME);
-        const normalized = proposedName.trim().toLowerCase();
+        const normalized = normalizeProposalName(proposedName);
         for (const row of rows) {
             if (row[5] === 'TRUE')
                 continue; // already closed
-            if ((row[2] ?? '').trim().toLowerCase() === normalized) {
+            if (normalizeProposalName(row[2] ?? '') === normalized) {
                 return {
                     submissionId: row[0],
                     messageId: row[1],

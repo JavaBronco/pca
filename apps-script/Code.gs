@@ -17,7 +17,7 @@ var FIELD_MAP = {
   email: 'Email Address',
   membershipNumber: 'PCA Membership Number',
   proposedName: 'Proposed Region Name',
-  whyItFits: 'Why this name fits',
+  whyItFits: 'Why does this name fit?',
 };
 
 /**
