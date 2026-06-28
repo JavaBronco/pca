@@ -88,7 +88,7 @@ export class DiscordService {
       submission.whyItFits,
       '',
       '━━━━━━━━━━━━━━━━━━━━━━',
-      'React with 👍 to approve this name.',
+      'React with 👍 to support this name.',
       '_Use this thread to discuss the proposal._',
     ].join('\n');
   }
@@ -128,7 +128,7 @@ export class DiscordService {
       body: {
         content: [
           '**🔒 Voting has closed.**',
-          `👍 Approve: ${totals.approve}`,
+          `👍 Support: ${totals.approve}`,
         ].join('\n'),
         message_reference: { message_id: messageId },
       },
