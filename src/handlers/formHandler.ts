@@ -121,9 +121,8 @@ export async function handleFormSubmission(
     return { outcome: 'error', message: 'Discord post failed', submissionId: submission.submissionId };
   }
 
-  // Track proposal for vote closing
-  const votingDays = parseInt(cfg.VOTING_DURATION_DAYS, 10);
-  const votingClosesAt = new Date(postResult.postedAt.getTime() + votingDays * 86_400_000);
+  // Voting closes at midnight (end of day) August 31, 2026 UTC
+  const votingClosesAt = new Date('2026-09-01T07:00:00.000Z'); // midnight Aug 31 Pacific (PDT, UTC-7)
 
   await deps.voteTracker.recordProposal({
     submissionId: submission.submissionId,
