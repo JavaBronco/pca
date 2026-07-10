@@ -136,4 +136,36 @@ export class DiscordService {
   }
 }
 
+  async postLeaderboard(
+    ranked: Array<{ proposal: { proposedName: string; threadId: string }; supportCount: number }>,
+  ): Promise<void> {
+    const cfg = getConfig();
+
+    if (ranked.length === 0) {
+      await this.rest.post(Routes.channelMessages(cfg.DISCORD_ADMIN_CHANNEL_ID), {
+        body: { content: '📊 **Weekly Leaderboard** — No open proposals yet.' },
+      });
+      return;
+    }
+
+    const lines = ranked.map((entry, i) => {
+      const link = `https://discord.com/channels/${cfg.DISCORD_GUILD_ID}/${entry.proposal.threadId}`;
+      const votes = entry.supportCount === 1 ? '1 support' : `${entry.supportCount} supports`;
+      return `**${i + 1}.** [${entry.proposal.proposedName}](${link}) — ${votes}`;
+    });
+
+    const content = [
+      '📊 **Weekly Leaderboard — Region Name Proposals**',
+      '',
+      ...lines,
+      '',
+      '_Voting closes midnight August 31 (Pacific)._',
+    ].join('\n');
+
+    await this.rest.post(Routes.channelMessages(cfg.DISCORD_VOTING_CHANNEL_ID), {
+      body: { content },
+    });
+  }
+}
+
 export const discordService = new DiscordService();
