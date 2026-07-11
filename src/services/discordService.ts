@@ -134,7 +134,6 @@ export class DiscordService {
       },
     });
   }
-}
 
   async postLeaderboard(
     ranked: Array<{ proposal: { proposedName: string; threadId: string }; supportCount: number }>,
