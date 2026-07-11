@@ -140,30 +140,45 @@ export class DiscordService {
   ): Promise<void> {
     const cfg = getConfig();
 
-    if (ranked.length === 0) {
-      await this.rest.post(Routes.channelMessages(cfg.DISCORD_ADMIN_CHANNEL_ID), {
-        body: { content: '📊 **Weekly Leaderboard** — No open proposals yet.' },
-      });
-      return;
-    }
+    const lines = ranked.length === 0
+      ? ['No open proposals yet.']
+      : ranked.map((entry, i) => {
+          const link = `https://discord.com/channels/${cfg.DISCORD_GUILD_ID}/${entry.proposal.threadId}`;
+          const votes = entry.supportCount === 1 ? '1 support' : `${entry.supportCount} supports`;
+          return `**${i + 1}.** [${entry.proposal.proposedName}](${link}) — ${votes}`;
+        });
 
-    const lines = ranked.map((entry, i) => {
-      const link = `https://discord.com/channels/${cfg.DISCORD_GUILD_ID}/${entry.proposal.threadId}`;
-      const votes = entry.supportCount === 1 ? '1 support' : `${entry.supportCount} supports`;
-      return `**${i + 1}.** [${entry.proposal.proposedName}](${link}) — ${votes}`;
-    });
-
+    const date = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     const content = [
-      '📊 **Weekly Leaderboard — Region Name Proposals**',
+      `📊 **Leaderboard Update — ${date}**`,
       '',
       ...lines,
       '',
       '_Voting closes midnight August 31 (Pacific)._',
     ].join('\n');
 
-    await this.rest.post(Routes.channelMessages(cfg.DISCORD_VOTING_CHANNEL_ID), {
-      body: { content },
-    });
+    // Find existing leaderboard thread or create one
+    const threads = await this.rest.get(
+      Routes.guildActiveThreads(cfg.DISCORD_GUILD_ID),
+    ) as { threads: Array<{ id: string; name: string; parent_id: string }> };
+
+    const existing = threads.threads.find(
+      (t) => t.name === '📊 Leaderboard' && t.parent_id === cfg.DISCORD_VOTING_CHANNEL_ID,
+    );
+
+    if (existing) {
+      await this.rest.post(Routes.channelMessages(existing.id), {
+        body: { content },
+      });
+    } else {
+      await this.rest.post(Routes.threads(cfg.DISCORD_VOTING_CHANNEL_ID), {
+        body: {
+          name: '📊 Leaderboard',
+          message: { content },
+          auto_archive_duration: 10080,
+        },
+      });
+    }
   }
 }
 
