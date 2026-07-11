@@ -125,12 +125,12 @@ app.post('/admin/post-leaderboard', async (req: Request, res: Response) => {
 function scheduleWeeklyLeaderboard(): void {
   function msUntilNextSaturdayNoon(): number {
     const now = new Date();
-    // Target: Saturday 17:00 UTC = 10 AM Pacific (PDT, UTC-7)
+    // Target: Saturday 15:00 UTC = 8 AM Pacific (PDT, UTC-7)
     const target = new Date(now);
     const day = now.getUTCDay(); // 0=Sun … 6=Sat
     const daysUntilSat = (6 - day + 7) % 7 || 7; // next Saturday (never today even if Saturday)
     target.setUTCDate(now.getUTCDate() + daysUntilSat);
-    target.setUTCHours(17, 0, 0, 0);
+    target.setUTCHours(15, 0, 0, 0);
     return target.getTime() - now.getTime();
   }
 
@@ -165,7 +165,7 @@ async function start(): Promise<void> {
     30 * 60 * 1000,
   );
 
-  // Post weekly leaderboard every Saturday at 10 AM Pacific (PDT, UTC-7 = 17:00 UTC)
+  // Post weekly leaderboard every Saturday at 8 AM Pacific (PDT, UTC-7 = 15:00 UTC)
   scheduleWeeklyLeaderboard();
 
   const port = parseInt(cfg.PORT, 10);
