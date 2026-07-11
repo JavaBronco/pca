@@ -35,49 +35,6 @@ async function handleFormSubmission(rawPayload, webhookHeader, deps) {
             console.error('[Handler] Failed to log submission to sheet:', err.message);
         }
     }
-    // Membership validation
-    let membershipResult;
-    try {
-        membershipResult = await deps.membershipAdapter.validate(submission.membershipNumber);
-    }
-    catch (err) {
-        const errMsg = err.message;
-        await deps.auditLogger.log({
-            submissionId: submission.submissionId,
-            timestamp: new Date(),
-            event: 'membership_check_error',
-            membershipStatus: 'error',
-            error: errMsg,
-        });
-        await deps.adminNotifier.notify({
-            submissionId: submission.submissionId,
-            event: 'system_error',
-            detail: `Membership adapter threw: ${errMsg}`,
-            proposedName: submission.proposedName,
-            timestamp: new Date(),
-        });
-        return { outcome: 'error', message: 'Membership check failed', submissionId: submission.submissionId };
-    }
-    await deps.auditLogger.log({
-        submissionId: submission.submissionId,
-        timestamp: membershipResult.validatedAt,
-        event: 'membership_validated',
-        membershipStatus: membershipResult.status,
-    });
-    if (membershipResult.status !== 'valid') {
-        await deps.adminNotifier.notify({
-            submissionId: submission.submissionId,
-            event: 'membership_invalid',
-            detail: `Status: ${membershipResult.status}. ${membershipResult.message ?? ''}`,
-            proposedName: submission.proposedName,
-            timestamp: new Date(),
-        });
-        return {
-            outcome: 'membership_denied',
-            status: membershipResult.status,
-            submissionId: submission.submissionId,
-        };
-    }
     // Check if this name was already proposed — if so, add as a supporting comment
     let existingProposal = null;
     try {
@@ -135,9 +92,8 @@ async function handleFormSubmission(rawPayload, webhookHeader, deps) {
         });
         return { outcome: 'error', message: 'Discord post failed', submissionId: submission.submissionId };
     }
-    // Track proposal for vote closing
-    const votingDays = parseInt(cfg.VOTING_DURATION_DAYS, 10);
-    const votingClosesAt = new Date(postResult.postedAt.getTime() + votingDays * 86_400_000);
+    // Voting closes at midnight (end of day) August 31, 2026 UTC
+    const votingClosesAt = new Date('2026-09-01T07:00:00.000Z'); // midnight Aug 31 Pacific (PDT, UTC-7)
     await deps.voteTracker.recordProposal({
         submissionId: submission.submissionId,
         messageId: postResult.messageId,

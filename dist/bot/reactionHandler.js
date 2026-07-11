@@ -4,7 +4,7 @@ exports.createDiscordBot = createDiscordBot;
 exports.closeExpiredVoting = closeExpiredVoting;
 const discord_js_1 = require("discord.js");
 const config_js_1 = require("../config.js");
-const VOTE_EMOJIS = new Set(['👍', '👎', '🤔']);
+const VOTE_EMOJIS = new Set(['👍']);
 function createDiscordBot(voteTracker, discordService, auditLogger) {
     const client = new discord_js_1.Client({
         intents: [

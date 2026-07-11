@@ -101,6 +101,51 @@ app.post('/admin/close-voting', async (req, res) => {
     await (0, reactionHandler_js_1.closeExpiredVoting)(voteTracker_js_1.voteTracker, discordService_js_1.discordService, auditLogger_js_1.auditLogger);
     res.json({ ok: true });
 });
+// Manual trigger for the weekly leaderboard (also fires automatically every Saturday)
+app.post('/admin/post-leaderboard', async (req, res) => {
+    const cfg = (0, config_js_1.getConfig)();
+    if (req.headers['x-admin-secret'] !== cfg.WEBHOOK_SECRET) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+    }
+    try {
+        const ranked = await voteTracker_js_1.voteTracker.getRankedProposals();
+        await discordService_js_1.discordService.postLeaderboard(ranked);
+        res.json({ ok: true, proposalCount: ranked.length });
+    }
+    catch (err) {
+        console.error('[Leaderboard] Failed:', err.message);
+        res.status(500).json({ error: 'Failed to post leaderboard' });
+    }
+});
+function scheduleWeeklyLeaderboard() {
+    function msUntilNextSaturdayNoon() {
+        const now = new Date();
+        // Target: Saturday 15:00 UTC = 8 AM Pacific (PDT, UTC-7)
+        const target = new Date(now);
+        const day = now.getUTCDay(); // 0=Sun … 6=Sat
+        const daysUntilSat = (6 - day + 7) % 7 || 7; // next Saturday (never today even if Saturday)
+        target.setUTCDate(now.getUTCDate() + daysUntilSat);
+        target.setUTCHours(15, 0, 0, 0);
+        return target.getTime() - now.getTime();
+    }
+    function scheduleNext() {
+        const delay = msUntilNextSaturdayNoon();
+        console.log(`[Leaderboard] Next post in ${Math.round(delay / 3600000)}h`);
+        setTimeout(async () => {
+            try {
+                const ranked = await voteTracker_js_1.voteTracker.getRankedProposals();
+                await discordService_js_1.discordService.postLeaderboard(ranked);
+                console.log('[Leaderboard] Posted successfully');
+            }
+            catch (err) {
+                console.error('[Leaderboard] Failed to post:', err.message);
+            }
+            scheduleNext();
+        }, delay);
+    }
+    scheduleNext();
+}
 async function start() {
     const cfg = (0, config_js_1.getConfig)();
     // Start Discord bot
@@ -108,6 +153,8 @@ async function start() {
     await botClient.login(cfg.DISCORD_BOT_TOKEN);
     // Schedule periodic voting closer (every 30 minutes)
     setInterval(() => (0, reactionHandler_js_1.closeExpiredVoting)(voteTracker_js_1.voteTracker, discordService_js_1.discordService, auditLogger_js_1.auditLogger), 30 * 60 * 1000);
+    // Post weekly leaderboard every Saturday at 8 AM Pacific (PDT, UTC-7 = 15:00 UTC)
+    scheduleWeeklyLeaderboard();
     const port = parseInt(cfg.PORT, 10);
     app.listen(port, () => {
         console.log(`[Server] Listening on port ${port} (${cfg.NODE_ENV})`);

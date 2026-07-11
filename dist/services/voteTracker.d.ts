@@ -20,6 +20,10 @@ export declare class VoteTracker {
      * Comparison is case-insensitive and trims whitespace.
      */
     findOpenProposalByName(proposedName: string): Promise<ProposalRecord | null>;
+    getRankedProposals(): Promise<Array<{
+        proposal: ProposalRecord;
+        supportCount: number;
+    }>>;
     emojiToVoteType(emoji: string): VoteRecord['voteType'] | null;
 }
 export declare const voteTracker: VoteTracker;

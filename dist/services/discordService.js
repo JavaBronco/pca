@@ -4,7 +4,7 @@ exports.discordService = exports.DiscordService = void 0;
 const rest_1 = require("@discordjs/rest");
 const v10_1 = require("discord-api-types/v10");
 const config_js_1 = require("../config.js");
-const VOTE_EMOJIS = ['👍', '👎', '🤔'];
+const VOTE_EMOJIS = ['👍'];
 function sleep(ms) {
     return new Promise((r) => setTimeout(r, ms));
 }
@@ -72,7 +72,7 @@ class DiscordService {
             submission.whyItFits,
             '',
             '━━━━━━━━━━━━━━━━━━━━━━',
-            'React to vote:  👍 Approve  ·  👎 Reject  ·  🤔 Needs Discussion',
+            'React with 👍 to support this new name proposal.\n',
             '_Use this thread to discuss the proposal._',
         ].join('\n');
     }
@@ -96,24 +96,39 @@ class DiscordService {
         }), maxAttempts, baseDelay);
     }
     async closeVotingMessage(threadId, messageId, totals) {
-        const resultLine = totals.approve > totals.reject
-            ? '✅ Result: **APPROVED**'
-            : totals.approve < totals.reject
-                ? '❌ Result: **REJECTED**'
-                : '🤝 Result: **TIE — Needs Committee Review**';
         // Post the result inside the thread
         await this.rest.post(v10_1.Routes.channelMessages(threadId), {
             body: {
                 content: [
                     '**🔒 Voting has closed.**',
-                    `👍 Approve: ${totals.approve}`,
-                    `👎 Reject: ${totals.reject}`,
-                    `🤔 Needs Discussion: ${totals.discuss}`,
-                    '',
-                    resultLine,
+                    `👍 Support: ${totals.approve}`,
                 ].join('\n'),
                 message_reference: { message_id: messageId },
             },
+        });
+    }
+    async postLeaderboard(ranked) {
+        const cfg = (0, config_js_1.getConfig)();
+        if (ranked.length === 0) {
+            await this.rest.post(v10_1.Routes.channelMessages(cfg.DISCORD_ADMIN_CHANNEL_ID), {
+                body: { content: '📊 **Weekly Leaderboard** — No open proposals yet.' },
+            });
+            return;
+        }
+        const lines = ranked.map((entry, i) => {
+            const link = `https://discord.com/channels/${cfg.DISCORD_GUILD_ID}/${entry.proposal.threadId}`;
+            const votes = entry.supportCount === 1 ? '1 support' : `${entry.supportCount} supports`;
+            return `**${i + 1}.** [${entry.proposal.proposedName}](${link}) — ${votes}`;
+        });
+        const content = [
+            '📊 **Weekly Leaderboard — Region Name Proposals**',
+            '',
+            ...lines,
+            '',
+            '_Voting closes midnight August 31 (Pacific)._',
+        ].join('\n');
+        await this.rest.post(v10_1.Routes.channelMessages(cfg.DISCORD_VOTING_CHANNEL_ID), {
+            body: { content },
         });
     }
 }

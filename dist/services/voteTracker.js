@@ -5,8 +5,6 @@ const sheetsClient_js_1 = require("./sheetsClient.js");
 const config_js_1 = require("../config.js");
 const EMOJI_MAP = {
     '👍': 'approve',
-    '👎': 'reject',
-    '🤔': 'discuss',
 };
 /**
  * Normalizes a proposal name for duplicate detection.
@@ -165,6 +163,39 @@ class VoteTracker {
             }
         }
         return null;
+    }
+    async getRankedProposals() {
+        const cfg = (0, config_js_1.getConfig)();
+        if (!cfg.SUBMISSIONS_SHEET_ID)
+            return [];
+        const [proposalRows, voteRows] = await Promise.all([
+            (0, sheetsClient_js_1.getRows)(cfg.SUBMISSIONS_SHEET_ID, cfg.PROPOSALS_SHEET_NAME),
+            (0, sheetsClient_js_1.getRows)(cfg.SUBMISSIONS_SHEET_ID, cfg.VOTES_SHEET_NAME),
+        ]);
+        const supportCounts = {};
+        for (const row of voteRows) {
+            if (row[4] === 'REMOVED')
+                continue;
+            if (row[2] === 'approve') {
+                supportCounts[row[0]] = (supportCounts[row[0]] ?? 0) + 1;
+            }
+        }
+        const results = proposalRows
+            .filter((row) => row[5] !== 'TRUE') // open proposals only
+            .map((row) => ({
+            proposal: {
+                submissionId: row[0],
+                messageId: row[1],
+                proposedName: row[2],
+                postedAt: new Date(row[3]),
+                votingClosesAt: row[4] ? new Date(row[4]) : undefined,
+                closed: false,
+                threadId: row[6] ?? row[1],
+            },
+            supportCount: supportCounts[row[1]] ?? 0,
+        }));
+        results.sort((a, b) => b.supportCount - a.supportCount);
+        return results;
     }
     emojiToVoteType(emoji) {
         return EMOJI_MAP[emoji] ?? null;

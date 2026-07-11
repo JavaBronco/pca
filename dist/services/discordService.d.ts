@@ -14,6 +14,13 @@ export declare class DiscordService {
         reject: number;
         discuss: number;
     }): Promise<void>;
+    postLeaderboard(ranked: Array<{
+        proposal: {
+            proposedName: string;
+            threadId: string;
+        };
+        supportCount: number;
+    }>): Promise<void>;
 }
 export declare const discordService: DiscordService;
 //# sourceMappingURL=discordService.d.ts.map
