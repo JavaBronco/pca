@@ -25,6 +25,7 @@ const configSchema = z.object({
   AUDIT_SHEET_NAME: z.string().default('Audit'),
   VOTES_SHEET_NAME: z.string().default('Votes'),
   PROPOSALS_SHEET_NAME: z.string().default('Proposals'),
+  LEADERBOARD_THREAD_ID: z.string().optional(),
 
   PCA_API_BASE_URL: z.string().url().optional(),
   PCA_API_KEY: z.string().optional(),

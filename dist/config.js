@@ -26,6 +26,7 @@ const configSchema = zod_1.z.object({
     AUDIT_SHEET_NAME: zod_1.z.string().default('Audit'),
     VOTES_SHEET_NAME: zod_1.z.string().default('Votes'),
     PROPOSALS_SHEET_NAME: zod_1.z.string().default('Proposals'),
+    LEADERBOARD_THREAD_ID: zod_1.z.string().optional(),
     PCA_API_BASE_URL: zod_1.z.string().url().optional(),
     PCA_API_KEY: zod_1.z.string().optional(),
     SMTP_HOST: zod_1.z.string().optional(),

@@ -148,7 +148,8 @@ export class DiscordService {
           return `**${i + 1}.** [${entry.proposal.proposedName}](${link}) — ${votes}`;
         });
 
-    const date = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    const now = new Date();
+    const date = `${now.getUTCMonth() + 1}/${now.getUTCDate()}/${now.getUTCFullYear()}`;
     const content = [
       `📊 **Leaderboard Update — ${date}**`,
       '',
@@ -157,27 +158,21 @@ export class DiscordService {
       '_Voting closes midnight August 31 (Pacific)._',
     ].join('\n');
 
-    // Find existing leaderboard thread or create one
-    const threads = await this.rest.get(
-      Routes.guildActiveThreads(cfg.DISCORD_GUILD_ID),
-    ) as { threads: Array<{ id: string; name: string; parent_id: string }> };
+    const leaderboardThreadId = cfg.LEADERBOARD_THREAD_ID;
 
-    const existing = threads.threads.find(
-      (t) => t.name === '📊 Leaderboard' && t.parent_id === cfg.DISCORD_VOTING_CHANNEL_ID,
-    );
-
-    if (existing) {
-      await this.rest.post(Routes.channelMessages(existing.id), {
+    if (leaderboardThreadId) {
+      await this.rest.post(Routes.channelMessages(leaderboardThreadId), {
         body: { content },
       });
     } else {
-      await this.rest.post(Routes.threads(cfg.DISCORD_VOTING_CHANNEL_ID), {
+      const thread = await this.rest.post(Routes.threads(cfg.DISCORD_VOTING_CHANNEL_ID), {
         body: {
           name: '📊 Leaderboard',
           message: { content },
           auto_archive_duration: 10080,
         },
-      });
+      }) as { id: string };
+      console.log(`[Leaderboard] Created thread — set LEADERBOARD_THREAD_ID=${thread.id} in Railway to reuse it`);
     }
   }
 }

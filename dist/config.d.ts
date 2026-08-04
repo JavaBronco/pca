@@ -17,6 +17,7 @@ declare const configSchema: z.ZodObject<{
     AUDIT_SHEET_NAME: z.ZodDefault<z.ZodString>;
     VOTES_SHEET_NAME: z.ZodDefault<z.ZodString>;
     PROPOSALS_SHEET_NAME: z.ZodDefault<z.ZodString>;
+    LEADERBOARD_THREAD_ID: z.ZodOptional<z.ZodString>;
     PCA_API_BASE_URL: z.ZodOptional<z.ZodString>;
     PCA_API_KEY: z.ZodOptional<z.ZodString>;
     SMTP_HOST: z.ZodOptional<z.ZodString>;
@@ -49,6 +50,7 @@ declare const configSchema: z.ZodObject<{
     GOOGLE_PRIVATE_KEY?: string | undefined;
     SUBMISSIONS_SHEET_ID?: string | undefined;
     MEMBERS_SHEET_ID?: string | undefined;
+    LEADERBOARD_THREAD_ID?: string | undefined;
     PCA_API_BASE_URL?: string | undefined;
     PCA_API_KEY?: string | undefined;
     SMTP_HOST?: string | undefined;
@@ -73,6 +75,7 @@ declare const configSchema: z.ZodObject<{
     AUDIT_SHEET_NAME?: string | undefined;
     VOTES_SHEET_NAME?: string | undefined;
     PROPOSALS_SHEET_NAME?: string | undefined;
+    LEADERBOARD_THREAD_ID?: string | undefined;
     PCA_API_BASE_URL?: string | undefined;
     PCA_API_KEY?: string | undefined;
     SMTP_HOST?: string | undefined;
