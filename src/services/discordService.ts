@@ -150,28 +150,45 @@ export class DiscordService {
 
     const now = new Date();
     const date = `${now.getUTCMonth() + 1}/${now.getUTCDate()}/${now.getUTCFullYear()}`;
-    const content = [
-      `📊 **Leaderboard Update — ${date}**`,
-      '',
-      ...lines,
-      '',
-      '_Voting closes midnight August 31 (Pacific)._',
-    ].join('\n');
+    const header = `📊 **Leaderboard Update — ${date}**`;
+    const footer = '_Voting closes midnight August 31 (Pacific)._';
+
+    // Split lines into chunks that fit within Discord's 2000 char limit
+    const chunks: string[] = [];
+    let current = header;
+    for (const line of lines) {
+      const next = current + '\n' + line;
+      if (next.length > 1900) {
+        chunks.push(current);
+        current = line;
+      } else {
+        current = next;
+      }
+    }
+    current += '\n\n' + footer;
+    chunks.push(current);
 
     const leaderboardThreadId = cfg.LEADERBOARD_THREAD_ID;
 
     if (leaderboardThreadId) {
-      await this.rest.post(Routes.channelMessages(leaderboardThreadId), {
-        body: { content },
-      });
+      for (const chunk of chunks) {
+        await this.rest.post(Routes.channelMessages(leaderboardThreadId), {
+          body: { content: chunk },
+        });
+      }
     } else {
       const thread = await this.rest.post(Routes.threads(cfg.DISCORD_VOTING_CHANNEL_ID), {
         body: {
           name: '📊 Leaderboard',
-          message: { content },
+          message: { content: chunks[0] },
           auto_archive_duration: 10080,
         },
       }) as { id: string };
+      for (const chunk of chunks.slice(1)) {
+        await this.rest.post(Routes.channelMessages(thread.id), {
+          body: { content: chunk },
+        });
+      }
       console.log(`[Leaderboard] Created thread — set LEADERBOARD_THREAD_ID=${thread.id} in Railway to reuse it`);
     }
   }
